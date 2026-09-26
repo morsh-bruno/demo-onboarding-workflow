@@ -1,0 +1,762 @@
+info:
+  name: Onboarding API Mock
+  type: mock
+mock:
+  port: 4000
+  delay: 150
+routes:
+  - name: health (mock)
+    description: Lets npm test scripts check that the mock server is running
+    request:
+      method: GET
+      url: "{{baseUrl}}/health"
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "status": "ok",
+            "mock": true
+          }
+  - name: "signup: Success (mock)"
+    description: Default response for POST /auth/signup
+    request:
+      method: POST
+      url: "{{baseUrl}}/auth/signup"
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "userId": "usr_mock00000001",
+            "email": "ada@example.com",
+            "message": "Account created. A verification code was sent to your email.",
+            "debugOtp": "123456",
+            "onboarding": {
+              "completed": [
+                "signup"
+              ],
+              "pending": [
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "1/11"
+            }
+          }
+  - name: "signup: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: POST
+      url: "{{baseUrl}}/auth/signup"
+    response:
+      status: 409
+      statusText: Conflict
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "EMAIL_ALREADY_EXISTS",
+            "message": "An account with this email already exists",
+            "step": "signup",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "verify-email: Success (mock)"
+    description: Default response for POST /auth/verify-email
+    request:
+      method: POST
+      url: "{{baseUrl}}/auth/verify-email"
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "userId": "usr_mock00000001",
+            "emailVerified": true,
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email"
+              ],
+              "pending": [
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "2/11"
+            }
+          }
+  - name: "verify-email: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: POST
+      url: "{{baseUrl}}/auth/verify-email"
+    response:
+      status: 400
+      statusText: Bad Request
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "INVALID_OTP",
+            "message": "The verification code is invalid or has expired",
+            "step": "verify-email",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "login: Success (mock)"
+    description: Default response for POST /auth/login
+    request:
+      method: POST
+      url: "{{baseUrl}}/auth/login"
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "accessToken": "mock-access-token-0001",
+            "tokenType": "Bearer",
+            "expiresIn": 3600,
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login"
+              ],
+              "pending": [
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "3/11"
+            }
+          }
+  - name: "login: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: POST
+      url: "{{baseUrl}}/auth/login"
+    response:
+      status: 401
+      statusText: Unauthorized
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "INVALID_CREDENTIALS",
+            "message": "Email or password is incorrect",
+            "step": "login",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "accept-terms: Success (mock)"
+    description: Default response for POST /users/me/terms
+    request:
+      method: POST
+      url: "{{baseUrl}}/users/me/terms"
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "version": "2026-01",
+            "acceptedAt": "2026-09-27T10:00:00.000Z",
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms"
+              ],
+              "pending": [
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "4/11"
+            }
+          }
+  - name: "accept-terms: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: POST
+      url: "{{baseUrl}}/users/me/terms"
+    response:
+      status: 422
+      statusText: Unprocessable Entity
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "TERMS_VERSION_OUTDATED",
+            "message": "Terms version must be 2026-01",
+            "step": "accept-terms",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "update-profile: Success (mock)"
+    description: Default response for PATCH /users/me/profile
+    request:
+      method: PATCH
+      url: "{{baseUrl}}/users/me/profile"
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "profile": {
+              "displayName": "Ada",
+              "jobTitle": "QA Engineer",
+              "company": "Analytical Engines Ltd",
+              "bio": "Testing workflows with Bruno"
+            },
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile"
+              ],
+              "pending": [
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "5/11"
+            }
+          }
+  - name: "update-profile: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: PATCH
+      url: "{{baseUrl}}/users/me/profile"
+    response:
+      status: 422
+      statusText: Unprocessable Entity
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "VALIDATION_ERROR",
+            "message": "Profile contains invalid fields",
+            "step": "update-profile",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "set-preferences: Success (mock)"
+    description: Default response for PUT /users/me/preferences
+    request:
+      method: PUT
+      url: "{{baseUrl}}/users/me/preferences"
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "preferences": {
+              "locale": "en-GB",
+              "timezone": "Europe/London",
+              "notifications": {
+                "email": true,
+                "productUpdates": false
+              }
+            },
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences"
+              ],
+              "pending": [
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "6/11"
+            }
+          }
+  - name: "set-preferences: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: PUT
+      url: "{{baseUrl}}/users/me/preferences"
+    response:
+      status: 422
+      statusText: Unprocessable Entity
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "UNSUPPORTED_LOCALE",
+            "message": "The requested locale is not supported",
+            "step": "set-preferences",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "enable-2fa: Success (mock)"
+    description: Default response for POST /users/me/2fa
+    request:
+      method: POST
+      url: "{{baseUrl}}/users/me/2fa"
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "enabled": true,
+            "method": "totp",
+            "secret": "MOCKSECRET2FA0001",
+            "backupCodes": [
+              "a1b2c3d4",
+              "e5f6a7b8",
+              "c9d0e1f2",
+              "a3b4c5d6",
+              "e7f8a9b0"
+            ],
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa"
+              ],
+              "pending": [
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "7/11"
+            }
+          }
+  - name: "enable-2fa: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: POST
+      url: "{{baseUrl}}/users/me/2fa"
+    response:
+      status: 400
+      statusText: Bad Request
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "2FA_SETUP_FAILED",
+            "message": "Could not set up two-factor authentication",
+            "step": "enable-2fa",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "create-workspace: Success (mock)"
+    description: Default response for POST /workspaces
+    request:
+      method: POST
+      url: "{{baseUrl}}/workspaces"
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "workspaceId": "ws_mock00000001",
+            "name": "Analytical Engines",
+            "slug": "analytical-engines",
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace"
+              ],
+              "pending": [
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "8/11"
+            }
+          }
+  - name: "create-workspace: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: POST
+      url: "{{baseUrl}}/workspaces"
+    response:
+      status: 409
+      statusText: Conflict
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "WORKSPACE_SLUG_TAKEN",
+            "message": "A workspace with this slug already exists",
+            "step": "create-workspace",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "invite-teammates: Success (mock)"
+    description: Default response for POST /workspaces/{{workspaceId}}/invites
+    request:
+      method: POST
+      url: "{{baseUrl}}/workspaces/{{workspaceId}}/invites"
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "workspaceId": "ws_mock00000001",
+            "invited": [
+              {
+                "email": "charles@example.com",
+                "role": "member",
+                "status": "pending"
+              },
+              {
+                "email": "mary@example.com",
+                "role": "member",
+                "status": "pending"
+              }
+            ],
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates"
+              ],
+              "pending": [
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "9/11"
+            }
+          }
+  - name: "invite-teammates: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: POST
+      url: "{{baseUrl}}/workspaces/{{workspaceId}}/invites"
+    response:
+      status: 429
+      statusText: Too Many Requests
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "INVITE_LIMIT_REACHED",
+            "message": "Invite limit reached for this workspace",
+            "step": "invite-teammates",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "select-plan: Success (mock)"
+    description: Default response for POST /billing/subscription
+    request:
+      method: POST
+      url: "{{baseUrl}}/billing/subscription"
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "subscriptionId": "sub_mock00000001",
+            "id": "sub_mock00000001",
+            "plan": "pro",
+            "pricePerMonth": 12,
+            "status": "active",
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan"
+              ],
+              "pending": [
+                "complete-onboarding"
+              ],
+              "progress": "10/11"
+            }
+          }
+  - name: "select-plan: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: POST
+      url: "{{baseUrl}}/billing/subscription"
+    response:
+      status: 402
+      statusText: Payment Required
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "PAYMENT_DECLINED",
+            "message": "The payment method was declined",
+            "step": "select-plan",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure
+  - name: "complete-onboarding: Success (mock)"
+    description: Default response for POST /onboarding/complete
+    request:
+      method: POST
+      url: "{{baseUrl}}/onboarding/complete"
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "userId": "usr_mock00000001",
+            "status": "completed",
+            "completedAt": "2026-09-27T10:05:00.000Z",
+            "summary": {
+              "email": "ada@example.com",
+              "displayName": "Ada",
+              "termsVersion": "2026-01",
+              "twoFactor": true,
+              "workspaceId": "ws_mock00000001",
+              "plan": "pro"
+            },
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "pending": [],
+              "progress": "11/11"
+            }
+          }
+  - name: "complete-onboarding: Failure (mock)"
+    description: "Returned when the request sends x-simulate-outcome: failure"
+    request:
+      method: POST
+      url: "{{baseUrl}}/onboarding/complete"
+    response:
+      status: 500
+      statusText: Internal Server Error
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "ONBOARDING_FINALIZE_FAILED",
+            "message": "Could not finalize onboarding, please retry",
+            "step": "complete-onboarding",
+            "simulated": true
+          }
+    rules:
+      operator: AND
+      conditions:
+        - target: header
+          key: x-simulate-outcome
+          operator: equals
+          value: failure

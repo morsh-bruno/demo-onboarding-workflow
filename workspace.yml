@@ -1,0 +1,16 @@
+opencollection: 1.0.0
+info:
+  name: "Onboarding QA Demo"
+  type: workspace
+
+collections:
+  - name: "User Onboarding Workflow"
+    path: "bruno"
+  - name: "User Onboarding (Data-Driven)"
+    path: "bruno-data-driven"
+  - name: "User Onboarding (Mock Server)"
+    path: "bruno-mock"
+
+specs:
+
+docs: ''

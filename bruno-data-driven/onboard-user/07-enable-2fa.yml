@@ -1,0 +1,36 @@
+info:
+  name: 07 Enable 2FA
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{baseUrl}}/users/me/2fa"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "method": "totp"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: enable-2fa
+  scripts:
+    - type: tests
+      code: |-
+        test("2FA is enabled", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().enabled).to.equal(true);
+        });
+
+        test("returns secret and backup codes", function () {
+          expect(res.getBody().secret).to.be.a("string");
+          expect(res.getBody().backupCodes).to.have.lengthOf(5);
+        });

@@ -1,0 +1,9 @@
+name: local
+
+variables:
+  - name: baseUrl
+    value: http://localhost:3000
+  - name: password
+    value: S3cure-Passw0rd!
+  - name: failAtStep
+    value: none

@@ -1,0 +1,36 @@
+info:
+  name: 10 Select Plan
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{baseUrl}}/billing/subscription"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "plan": "pro",
+        "paymentMethodId": "pm_card_visa"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: select-plan
+  scripts:
+    - type: tests
+      code: |-
+        test("subscription is created", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        test("subscription is active on the pro plan", function () {
+          expect(res.getBody().plan).to.equal("pro");
+          expect(res.getBody().status).to.equal("active");
+        });

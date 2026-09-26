@@ -1,0 +1,36 @@
+info:
+  name: 11 Complete Onboarding
+  type: http
+  seq: 11
+
+http:
+  method: POST
+  url: "{{baseUrl}}/onboarding/complete"
+  headers:
+    - name: Authorization
+      value: Bearer {{accessToken}}
+
+runtime:
+  variables:
+    - name: step
+      value: complete-onboarding
+  scripts:
+    - type: tests
+      code: |-
+        test("onboarding is completed", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("completed");
+        });
+
+        test("all 11 steps are complete", function () {
+          expect(res.getBody().onboarding.progress).to.equal("11/11");
+          expect(res.getBody().onboarding.pending).to.be.empty;
+        });
+
+        test("summary reflects the whole workflow", function () {
+          const summary = res.getBody().summary;
+          expect(summary.email).to.equal(bru.getVar("email"));
+          expect(summary.workspaceId).to.equal(bru.getVar("workspaceId"));
+          expect(summary.plan).to.equal("pro");
+          expect(summary.twoFactor).to.equal(true);
+        });

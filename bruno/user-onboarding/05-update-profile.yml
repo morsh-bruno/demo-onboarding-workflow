@@ -1,0 +1,38 @@
+info:
+  name: 05 Update Profile
+  type: http
+  seq: 5
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/users/me/profile"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "displayName": "Ada",
+        "jobTitle": "QA Engineer",
+        "company": "Analytical Engines Ltd",
+        "bio": "Testing workflows with Bruno"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: update-profile
+  scripts:
+    - type: tests
+      code: |-
+        test("profile is updated", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("profile reflects submitted values", function () {
+          expect(res.getBody().profile.displayName).to.equal("Ada");
+          expect(res.getBody().profile.jobTitle).to.equal("QA Engineer");
+        });

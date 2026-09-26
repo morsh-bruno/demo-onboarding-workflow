@@ -1,0 +1,97 @@
+info:
+  name: 02 Verify Email (OTP)
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/verify-email"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "userId": "{{userId}}",
+        "otp": "{{otp}}"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: verify-email
+  scripts:
+    - type: tests
+      code: |-
+        test("OTP is accepted", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("email is verified", function () {
+          expect(res.getBody().emailVerified).to.equal(true);
+        });
+
+examples:
+  - name: Success
+    description: verify-email succeeds
+    request:
+      url: "{{baseUrl}}/auth/verify-email"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: success
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "userId": "usr_mock00000001",
+            "emailVerified": true,
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email"
+              ],
+              "pending": [
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "2/11"
+            }
+          }
+  - name: Failure
+    description: "verify-email fails (x-simulate-outcome: failure)"
+    request:
+      url: "{{baseUrl}}/auth/verify-email"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: failure
+    response:
+      status: 400
+      statusText: Bad Request
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "INVALID_OTP",
+            "message": "The verification code is invalid or has expired",
+            "step": "verify-email",
+            "simulated": true
+          }

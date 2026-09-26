@@ -1,0 +1,40 @@
+info:
+  name: 06 Set Preferences
+  type: http
+  seq: 6
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/users/me/preferences"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "locale": "{{locale}}",
+        "timezone": "{{timezone}}",
+        "notifications": {
+          "email": true,
+          "productUpdates": false
+        }
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: set-preferences
+  scripts:
+    - type: tests
+      code: |-
+        test("preferences are saved", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("preferences reflect submitted values", function () {
+          expect(res.getBody().preferences.locale).to.equal(bru.runner.iterationData.get("locale"));
+          expect(res.getBody().preferences.timezone).to.equal(bru.runner.iterationData.get("timezone"));
+        });

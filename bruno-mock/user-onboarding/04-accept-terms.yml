@@ -1,0 +1,99 @@
+info:
+  name: 04 Accept Terms
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/users/me/terms"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "version": "2026-01"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: accept-terms
+  scripts:
+    - type: tests
+      code: |-
+        test("terms are accepted", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("records the accepted version", function () {
+          expect(res.getBody().version).to.equal("2026-01");
+          expect(res.getBody().acceptedAt).to.be.a("string");
+        });
+
+examples:
+  - name: Success
+    description: accept-terms succeeds
+    request:
+      url: "{{baseUrl}}/users/me/terms"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: success
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "version": "2026-01",
+            "acceptedAt": "2026-09-27T10:00:00.000Z",
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms"
+              ],
+              "pending": [
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "4/11"
+            }
+          }
+  - name: Failure
+    description: "accept-terms fails (x-simulate-outcome: failure)"
+    request:
+      url: "{{baseUrl}}/users/me/terms"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: failure
+    response:
+      status: 422
+      statusText: Unprocessable Entity
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "TERMS_VERSION_OUTDATED",
+            "message": "Terms version must be 2026-01",
+            "step": "accept-terms",
+            "simulated": true
+          }

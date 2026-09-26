@@ -1,0 +1,11 @@
+user,name,emailPrefix,displayName,jobTitle,company,locale,timezone,plan,failAtStep
+user-01,Ada Lovelace,ada,Ada,QA Engineer,Analytical Engines,en-GB,Europe/London,pro,none
+user-02,Alan Turing,alan,Alan,Staff Engineer,Bletchley Labs,en-GB,Europe/London,business,none
+user-03,Grace Hopper,grace,Grace,Engineering Manager,Navy Compilers,en-US,America/New_York,pro,verify-email
+user-04,Linus Torvalds,linus,Linus,Maintainer,Kernel Co,en-US,America/Los_Angeles,free,none
+user-05,Margaret Hamilton,margaret,Margaret,Flight Software Lead,Apollo Systems,en-US,America/New_York,business,none
+user-06,Katherine Johnson,katherine,Katherine,Data Scientist,Orbital Math,en-US,America/Chicago,pro,select-plan
+user-07,Tim Berners-Lee,tim,Tim,Architect,Web Foundation,en-GB,Europe/London,free,none
+user-08,Hedy Lamarr,hedy,Hedy,Product Designer,Frequency Hop,de-DE,Europe/Berlin,pro,none
+user-09,Dennis Ritchie,dennis,Dennis,Principal Engineer,Bell Unix,en-US,America/New_York,business,complete-onboarding
+user-10,Radia Perlman,radia,Radia,Network Engineer,Spanning Tree Inc,fr-FR,Europe/Paris,pro,none

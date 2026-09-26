@@ -1,0 +1,108 @@
+info:
+  name: 11 Complete Onboarding
+  type: http
+  seq: 11
+
+http:
+  method: POST
+  url: "{{baseUrl}}/onboarding/complete"
+  headers:
+    - name: Authorization
+      value: Bearer {{accessToken}}
+
+runtime:
+  variables:
+    - name: step
+      value: complete-onboarding
+  scripts:
+    - type: tests
+      code: |-
+        test("onboarding is completed", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("completed");
+        });
+
+        test("all 11 steps are complete", function () {
+          expect(res.getBody().onboarding.progress).to.equal("11/11");
+          expect(res.getBody().onboarding.pending).to.be.empty;
+        });
+
+        test("summary reflects the whole workflow", function () {
+          const summary = res.getBody().summary;
+          expect(summary.email).to.equal(bru.getVar("email"));
+          expect(summary.workspaceId).to.equal(bru.getVar("workspaceId"));
+          expect(summary.plan).to.equal("pro");
+          expect(summary.twoFactor).to.equal(true);
+        });
+
+examples:
+  - name: Success
+    description: complete-onboarding succeeds
+    request:
+      url: "{{baseUrl}}/onboarding/complete"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: success
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "userId": "usr_mock00000001",
+            "status": "completed",
+            "completedAt": "2026-09-27T10:05:00.000Z",
+            "summary": {
+              "email": "ada@example.com",
+              "displayName": "Ada",
+              "termsVersion": "2026-01",
+              "twoFactor": true,
+              "workspaceId": "ws_mock00000001",
+              "plan": "pro"
+            },
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "pending": [],
+              "progress": "11/11"
+            }
+          }
+  - name: Failure
+    description: "complete-onboarding fails (x-simulate-outcome: failure)"
+    request:
+      url: "{{baseUrl}}/onboarding/complete"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: failure
+    response:
+      status: 500
+      statusText: Internal Server Error
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "ONBOARDING_FINALIZE_FAILED",
+            "message": "Could not finalize onboarding, please retry",
+            "step": "complete-onboarding",
+            "simulated": true
+          }

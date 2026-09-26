@@ -1,0 +1,106 @@
+info:
+  name: 05 Update Profile
+  type: http
+  seq: 5
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/users/me/profile"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "displayName": "Ada",
+        "jobTitle": "QA Engineer",
+        "company": "Analytical Engines Ltd",
+        "bio": "Testing workflows with Bruno"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: update-profile
+  scripts:
+    - type: tests
+      code: |-
+        test("profile is updated", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("profile reflects submitted values", function () {
+          expect(res.getBody().profile.displayName).to.equal("Ada");
+          expect(res.getBody().profile.jobTitle).to.equal("QA Engineer");
+        });
+
+examples:
+  - name: Success
+    description: update-profile succeeds
+    request:
+      url: "{{baseUrl}}/users/me/profile"
+      method: PATCH
+      headers:
+        - name: x-simulate-outcome
+          value: success
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "profile": {
+              "displayName": "Ada",
+              "jobTitle": "QA Engineer",
+              "company": "Analytical Engines Ltd",
+              "bio": "Testing workflows with Bruno"
+            },
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile"
+              ],
+              "pending": [
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "5/11"
+            }
+          }
+  - name: Failure
+    description: "update-profile fails (x-simulate-outcome: failure)"
+    request:
+      url: "{{baseUrl}}/users/me/profile"
+      method: PATCH
+      headers:
+        - name: x-simulate-outcome
+          value: failure
+    response:
+      status: 422
+      statusText: Unprocessable Entity
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "VALIDATION_ERROR",
+            "message": "Profile contains invalid fields",
+            "step": "update-profile",
+            "simulated": true
+          }

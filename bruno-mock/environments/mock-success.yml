@@ -1,0 +1,9 @@
+name: mock-success
+
+variables:
+  - name: baseUrl
+    value: http://localhost:4000
+  - name: failAtStep
+    value: none
+  - name: password
+    value: S3cure-Passw0rd!

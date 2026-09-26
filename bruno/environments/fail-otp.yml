@@ -1,0 +1,9 @@
+name: fail-otp
+
+variables:
+  - name: baseUrl
+    value: http://localhost:3000
+  - name: failAtStep
+    value: verify-email
+  - name: password
+    value: S3cure-Passw0rd!

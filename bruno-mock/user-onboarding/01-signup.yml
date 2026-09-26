@@ -1,0 +1,116 @@
+info:
+  name: 01 Signup
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/signup"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Ada Lovelace",
+        "email": "{{email}}",
+        "password": "{{password}}"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: signup
+  scripts:
+    - type: before-request
+      code: |-
+        // The mock server is stateless and returns canned responses, so a fixed email is fine.
+        bru.setVar("email", "ada@example.com");
+    - type: after-response
+      code: |-
+        if (res.getStatus() === 201) {
+          bru.setVar("userId", res.getBody().userId);
+          bru.setVar("otp", res.getBody().debugOtp);
+        }
+    - type: tests
+      code: |-
+        test("account is created", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        test("returns userId and a verification code", function () {
+          const body = res.getBody();
+          expect(body.userId).to.match(/^usr_/);
+          expect(body.debugOtp).to.match(/^\d{6}$/);
+        });
+
+        test("signup step is marked complete", function () {
+          expect(res.getBody().onboarding.completed).to.include("signup");
+        });
+
+examples:
+  - name: Success
+    description: signup succeeds
+    request:
+      url: "{{baseUrl}}/auth/signup"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: success
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "userId": "usr_mock00000001",
+            "email": "ada@example.com",
+            "message": "Account created. A verification code was sent to your email.",
+            "debugOtp": "123456",
+            "onboarding": {
+              "completed": [
+                "signup"
+              ],
+              "pending": [
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "1/11"
+            }
+          }
+  - name: Failure
+    description: "signup fails (x-simulate-outcome: failure)"
+    request:
+      url: "{{baseUrl}}/auth/signup"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: failure
+    response:
+      status: 409
+      statusText: Conflict
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "EMAIL_ALREADY_EXISTS",
+            "message": "An account with this email already exists",
+            "step": "signup",
+            "simulated": true
+          }

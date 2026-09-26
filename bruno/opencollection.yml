@@ -1,0 +1,39 @@
+opencollection: "1.0.0"
+
+info:
+  name: User Onboarding Workflow
+
+request:
+  scripts:
+    - type: before-request
+      code: |-
+        // Decide whether this request should succeed or fail.
+        // Each request declares its `step` (request variable); the environment
+        // declares which step should fail via `failAtStep`.
+        const step = bru.getRequestVar("step");
+        const failAtStep = bru.getEnvVar("failAtStep");
+        const outcome = step && step === failAtStep ? "failure" : "success";
+
+        bru.setVar("simulateOutcome", outcome);
+        req.setHeader("x-simulate-outcome", outcome);
+    - type: tests
+      code: |-
+        // Every step must succeed. On failure, surface the server's error code in the report.
+        const body = res.getBody() || {};
+        test(`step "${bru.getRequestVar("step")}" succeeded`, function () {
+          expect(res.getStatus(), `${body.error}: ${body.message}`).to.be.below(400);
+        });
+
+        // Onboarding is a dependent workflow: if any step fails, the steps
+        // after it cannot succeed, so stop the run here.
+        if (res.getStatus() >= 400) {
+          console.log(`Step "${bru.getRequestVar("step")}" failed with ${res.getStatus()}; stopping the workflow.`);
+          bru.runner.stopExecution();
+        }
+
+extensions:
+  bruno:
+    scripts:
+      flow: sandwich
+
+bundled: false

@@ -1,0 +1,33 @@
+info:
+  name: 02 Verify Email (OTP)
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{baseUrl}}/auth/verify-email"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "userId": "{{userId}}",
+        "otp": "{{otp}}"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: verify-email
+  scripts:
+    - type: tests
+      code: |-
+        test("OTP is accepted", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("email is verified", function () {
+          expect(res.getBody().emailVerified).to.equal(true);
+        });

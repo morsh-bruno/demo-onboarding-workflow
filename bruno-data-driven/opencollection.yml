@@ -1,0 +1,56 @@
+opencollection: "1.0.0"
+
+info:
+  name: User Onboarding (Data-Driven)
+
+request:
+  scripts:
+    - type: before-request
+      code: |-
+        // Runs once per request, for every user (CSV row) in the run.
+        const step = bru.getRequestVar("step");
+
+        // A new user starts at signup: clear the failure flag left by the previous user.
+        if (step === "signup") {
+          bru.deleteVar("workflowFailedAt");
+        }
+
+        const failedAt = bru.getVar("workflowFailedAt");
+        if (failedAt) {
+          // An earlier step failed for this user; the remaining steps can't succeed.
+          // Skip them and let the runner move on to the next user.
+          console.log(`[${bru.runner.iterationData.get("user")}] skipping "${step}" because "${failedAt}" failed`);
+          bru.runner.skipRequest();
+        } else {
+          // The CSV row decides which step fails for this user. Fall back to the
+          // environment when a request is run on its own, outside the runner.
+          const failAtStep = bru.runner.iterationData.get("failAtStep") || bru.getEnvVar("failAtStep");
+          const outcome = step && step === failAtStep ? "failure" : "success";
+
+          bru.setVar("simulateOutcome", outcome);
+          req.setHeader("x-simulate-outcome", outcome);
+        }
+    - type: tests
+      code: |-
+        // Every step must succeed. On failure, surface the server's error code in the report.
+        const user = bru.runner.iterationData.get("user") || "single-run";
+        const step = bru.getRequestVar("step");
+        const body = res.getBody() || {};
+
+        test(`[${user}] step "${step}" succeeded`, function () {
+          expect(res.getStatus(), `${body.error}: ${body.message}`).to.be.below(400);
+        });
+
+        // Mark this user's workflow as failed so its remaining steps are skipped.
+        // Unlike the basic collection we don't stop the runner: the other users still run.
+        if (res.getStatus() >= 400) {
+          console.log(`[${user}] step "${step}" failed with ${res.getStatus()}; skipping the rest of this user's workflow.`);
+          bru.setVar("workflowFailedAt", step);
+        }
+
+extensions:
+  bruno:
+    scripts:
+      flow: sandwich
+
+bundled: false

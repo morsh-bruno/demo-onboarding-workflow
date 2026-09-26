@@ -1,0 +1,36 @@
+info:
+  name: 09 Invite Teammates
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{baseUrl}}/workspaces/{{workspaceId}}/invites"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "emails": ["charles@example.com", "mary@example.com"],
+        "role": "member"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: invite-teammates
+  scripts:
+    - type: tests
+      code: |-
+        test("invites are sent", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        test("both teammates are invited", function () {
+          expect(res.getBody().invited).to.have.lengthOf(2);
+          expect(res.getBody().invited[0].status).to.equal("pending");
+        });

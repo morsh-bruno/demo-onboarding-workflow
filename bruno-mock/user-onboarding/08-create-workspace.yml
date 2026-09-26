@@ -1,0 +1,108 @@
+info:
+  name: 08 Create Workspace
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{baseUrl}}/workspaces"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Analytical Engines",
+        "slug": "{{workspaceSlug}}"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: create-workspace
+  scripts:
+    - type: before-request
+      code: |-
+        bru.setVar("workspaceSlug", `analytical-engines-${Date.now()}`);
+    - type: after-response
+      code: |-
+        if (res.getStatus() === 201) {
+          bru.setVar("workspaceId", res.getBody().workspaceId);
+        }
+    - type: tests
+      code: |-
+        test("workspace is created", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        test("returns a workspace id", function () {
+          expect(res.getBody().workspaceId).to.match(/^ws_/);
+        });
+
+examples:
+  - name: Success
+    description: create-workspace succeeds
+    request:
+      url: "{{baseUrl}}/workspaces"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: success
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "workspaceId": "ws_mock00000001",
+            "name": "Analytical Engines",
+            "slug": "analytical-engines",
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace"
+              ],
+              "pending": [
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "8/11"
+            }
+          }
+  - name: Failure
+    description: "create-workspace fails (x-simulate-outcome: failure)"
+    request:
+      url: "{{baseUrl}}/workspaces"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: failure
+    response:
+      status: 409
+      statusText: Conflict
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "WORKSPACE_SLUG_TAKEN",
+            "message": "A workspace with this slug already exists",
+            "step": "create-workspace",
+            "simulated": true
+          }

@@ -1,0 +1,111 @@
+info:
+  name: 09 Invite Teammates
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{baseUrl}}/workspaces/{{workspaceId}}/invites"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "emails": ["charles@example.com", "mary@example.com"],
+        "role": "member"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: invite-teammates
+  scripts:
+    - type: tests
+      code: |-
+        test("invites are sent", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        test("both teammates are invited", function () {
+          expect(res.getBody().invited).to.have.lengthOf(2);
+          expect(res.getBody().invited[0].status).to.equal("pending");
+        });
+
+examples:
+  - name: Success
+    description: invite-teammates succeeds
+    request:
+      url: "{{baseUrl}}/workspaces/{{workspaceId}}/invites"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: success
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "workspaceId": "ws_mock00000001",
+            "invited": [
+              {
+                "email": "charles@example.com",
+                "role": "member",
+                "status": "pending"
+              },
+              {
+                "email": "mary@example.com",
+                "role": "member",
+                "status": "pending"
+              }
+            ],
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates"
+              ],
+              "pending": [
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "9/11"
+            }
+          }
+  - name: Failure
+    description: "invite-teammates fails (x-simulate-outcome: failure)"
+    request:
+      url: "{{baseUrl}}/workspaces/{{workspaceId}}/invites"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: failure
+    response:
+      status: 429
+      statusText: Too Many Requests
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "INVITE_LIMIT_REACHED",
+            "message": "Invite limit reached for this workspace",
+            "step": "invite-teammates",
+            "simulated": true
+          }

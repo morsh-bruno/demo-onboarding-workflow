@@ -1,0 +1,108 @@
+info:
+  name: 07 Enable 2FA
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{baseUrl}}/users/me/2fa"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "method": "totp"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: enable-2fa
+  scripts:
+    - type: tests
+      code: |-
+        test("2FA is enabled", function () {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().enabled).to.equal(true);
+        });
+
+        test("returns secret and backup codes", function () {
+          expect(res.getBody().secret).to.be.a("string");
+          expect(res.getBody().backupCodes).to.have.lengthOf(5);
+        });
+
+examples:
+  - name: Success
+    description: enable-2fa succeeds
+    request:
+      url: "{{baseUrl}}/users/me/2fa"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: success
+    response:
+      status: 200
+      statusText: OK
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "enabled": true,
+            "method": "totp",
+            "secret": "MOCKSECRET2FA0001",
+            "backupCodes": [
+              "a1b2c3d4",
+              "e5f6a7b8",
+              "c9d0e1f2",
+              "a3b4c5d6",
+              "e7f8a9b0"
+            ],
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa"
+              ],
+              "pending": [
+                "create-workspace",
+                "invite-teammates",
+                "select-plan",
+                "complete-onboarding"
+              ],
+              "progress": "7/11"
+            }
+          }
+  - name: Failure
+    description: "enable-2fa fails (x-simulate-outcome: failure)"
+    request:
+      url: "{{baseUrl}}/users/me/2fa"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: failure
+    response:
+      status: 400
+      statusText: Bad Request
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "2FA_SETUP_FAILED",
+            "message": "Could not set up two-factor authentication",
+            "step": "enable-2fa",
+            "simulated": true
+          }

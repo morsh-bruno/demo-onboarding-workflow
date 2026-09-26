@@ -1,0 +1,103 @@
+info:
+  name: 10 Select Plan
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{baseUrl}}/billing/subscription"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "plan": "pro",
+        "paymentMethodId": "pm_card_visa"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: select-plan
+  scripts:
+    - type: tests
+      code: |-
+        test("subscription is created", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        test("subscription is active on the pro plan", function () {
+          expect(res.getBody().plan).to.equal("pro");
+          expect(res.getBody().status).to.equal("active");
+        });
+
+examples:
+  - name: Success
+    description: select-plan succeeds
+    request:
+      url: "{{baseUrl}}/billing/subscription"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: success
+    response:
+      status: 201
+      statusText: Created
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "subscriptionId": "sub_mock00000001",
+            "id": "sub_mock00000001",
+            "plan": "pro",
+            "pricePerMonth": 12,
+            "status": "active",
+            "onboarding": {
+              "completed": [
+                "signup",
+                "verify-email",
+                "login",
+                "accept-terms",
+                "update-profile",
+                "set-preferences",
+                "enable-2fa",
+                "create-workspace",
+                "invite-teammates",
+                "select-plan"
+              ],
+              "pending": [
+                "complete-onboarding"
+              ],
+              "progress": "10/11"
+            }
+          }
+  - name: Failure
+    description: "select-plan fails (x-simulate-outcome: failure)"
+    request:
+      url: "{{baseUrl}}/billing/subscription"
+      method: POST
+      headers:
+        - name: x-simulate-outcome
+          value: failure
+    response:
+      status: 402
+      statusText: Payment Required
+      headers:
+        - name: Content-Type
+          value: application/json
+      body:
+        type: json
+        data: |-
+          {
+            "error": "PAYMENT_DECLINED",
+            "message": "The payment method was declined",
+            "step": "select-plan",
+            "simulated": true
+          }

@@ -1,0 +1,44 @@
+info:
+  name: 08 Create Workspace
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{baseUrl}}/workspaces"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "name": "{{company}}",
+        "slug": "{{workspaceSlug}}"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: create-workspace
+  scripts:
+    - type: before-request
+      code: |-
+        const company = (bru.runner.iterationData.get("company") || "workspace").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        bru.setVar("workspaceSlug", `${company}-${Date.now()}`);
+    - type: after-response
+      code: |-
+        if (res.getStatus() === 201) {
+          bru.setVar("workspaceId", res.getBody().workspaceId);
+        }
+    - type: tests
+      code: |-
+        test("workspace is created", function () {
+          expect(res.getStatus()).to.equal(201);
+        });
+
+        test("returns a workspace id", function () {
+          expect(res.getBody().workspaceId).to.match(/^ws_/);
+        });

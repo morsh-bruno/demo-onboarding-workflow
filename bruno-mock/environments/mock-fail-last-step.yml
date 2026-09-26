@@ -1,0 +1,9 @@
+name: mock-fail-last-step
+
+variables:
+  - name: baseUrl
+    value: http://localhost:4000
+  - name: failAtStep
+    value: complete-onboarding
+  - name: password
+    value: S3cure-Passw0rd!

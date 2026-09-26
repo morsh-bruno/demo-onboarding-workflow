@@ -1,0 +1,35 @@
+info:
+  name: 04 Accept Terms
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{baseUrl}}/users/me/terms"
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{accessToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "version": "2026-01"
+      }
+
+runtime:
+  variables:
+    - name: step
+      value: accept-terms
+  scripts:
+    - type: tests
+      code: |-
+        test("terms are accepted", function () {
+          expect(res.getStatus()).to.equal(200);
+        });
+
+        test("records the accepted version", function () {
+          expect(res.getBody().version).to.equal("2026-01");
+          expect(res.getBody().acceptedAt).to.be.a("string");
+        });
